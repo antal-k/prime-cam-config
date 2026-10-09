@@ -1,0 +1,55 @@
+# PrimeCam központi konfiguráció
+#
+# Minden adó (játékos gép) és a vevő rendszeresen letölti ezt a fájlt a main
+# ágról. A változások újraindítás nélkül életbe lépnek. A vevőben adónként
+# felülbírált mezők, illetve az adón helyben választott kamera és képkivágás
+# ezeket felülírják (lásd a README-t).
+#
+# Hibás fájl esetén az alkalmazások az utolsó jó konfigurációval futnak
+# tovább, és jelzik a hibát.
+
+schema = 1
+
+[output]
+# Kimeneti kép szélessége pixelben (96–1920). A magasság a képarányból
+# számolódik, páros számra kerekítve (300 × 16:9 → 300×168).
+width = 300
+# Képarány, pl. "16:9", "4:3", "1:1".
+aspect = "16:9"
+# Képkocka másodpercenként (5–60).
+fps = 30
+# Cél bitráta kbps-ben. Ha kihagyod, a méretből és az fps-ből számolódik.
+bitrate_kbps = 300
+# Felső korlát; a sávszélesség-becslés sem megy fölé.
+max_bitrate_kbps = 500
+# Alsó korlát rossz hálózaton.
+min_bitrate_kbps = 100
+
+[encoder]
+# "auto"     = NVENC, ha van NVIDIA kártya, különben OpenH264 (szoftveres)
+# "nvenc"    = csak NVENC (ha nem elérhető, OpenH264-re vált és jelzi)
+# "openh264" = mindig szoftveres kódolás
+preferred = "auto"
+
+[framing]
+# Nagyítás: 1.0 = a teljes kamerakép a képarányra vágva, legfeljebb 4.0.
+zoom = 1.0
+# Kivágás eltolása a lehetséges tartományon belül (-1.0 … 1.0, 0 = közép).
+offset_x = 0.0
+offset_y = 0.0
+# Vízszintes tükrözés.
+mirror = false
+
+[sync]
+# Milyen gyakran nézze meg az alkalmazás, változott-e ez a fájl (perc).
+poll_minutes = 5
+
+[update]
+# Milyen gyakran keressen új verziót a Releases oldalon (perc).
+check_minutes = 30
+# "when_idle" = akkor telepít, amikor nem streamel
+# "on_start"  = csak indításkor telepít
+# "never"     = nem telepít automatikusan (a vevőből indított frissítés továbbra is működik)
+install = "when_idle"
+# Ennél régebbi verziónál figyelmeztetés jelenik meg az adón és a vevőben.
+min_version = "0.1.0"
