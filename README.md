@@ -10,7 +10,7 @@ Ez a repó a nyilvános részeket tartalmazza:
 
 - `config/primecam.toml` – a központi beállítások (képméret, fps, bitráta, …)
 - [Releases](https://github.com/antal-k/prime-cam-config/releases) – a
-  letölthető, aláírt programok
+  letölthető programok
 
 ## Telepítés játékosoknak
 
@@ -29,8 +29,10 @@ Ez a repó a nyilvános részeket tartalmazza:
 6. Kapcsold be az **Indítás a Windowszal** opciót, hogy a meccsnapokon ne
    kelljen külön elindítani.
 
-A program automatikusan frissül (csak a fejlesztők által aláírt verzióra), és
-csak kimenő kapcsolatot használ, a routeren semmit nem kell beállítani.
+A program csak kimenő kapcsolatot használ, a routeren semmit nem kell
+beállítani. Magától nem frissül: új verziónál zárd be, és cseréld le az exe-t
+a Releases oldalról letöltöttre (a beállítások megmaradnak). Ha a stúdió
+újabb verziót vár, a program figyelmeztet.
 
 ### Mit küld a program?
 

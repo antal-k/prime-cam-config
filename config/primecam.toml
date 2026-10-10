@@ -45,11 +45,6 @@ mirror = false
 poll_minutes = 5
 
 [update]
-# Milyen gyakran keressen új verziót a Releases oldalon (perc).
-check_minutes = 30
-# "when_idle" = akkor telepít, amikor nem streamel
-# "on_start"  = csak indításkor telepít
-# "never"     = nem telepít automatikusan (a vevőből indított frissítés továbbra is működik)
-install = "when_idle"
-# Ennél régebbi verziónál figyelmeztetés jelenik meg az adón és a vevőben.
+# Ennél régebbi verziónál figyelmeztetés jelenik meg az adón és a vevőben
+# (az új verziót a Releases oldalról kell letölteni).
 min_version = "0.1.0"
