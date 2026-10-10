@@ -47,4 +47,4 @@ poll_minutes = 5
 [update]
 # Ennél régebbi verziónál figyelmeztetés jelenik meg az adón és a vevőben
 # (az új verziót a Releases oldalról kell letölteni).
-min_version = "0.1.0"
+min_version = "0.2.0"
