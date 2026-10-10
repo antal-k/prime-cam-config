@@ -2,9 +2,10 @@
 
 Játékoskamerák továbbítása esport közvetítéshez. A játékosok gépén futó
 **PrimeCam adó** (`primecam-sender.exe`) a webkamera képét kis méretre vágva,
-H.264-be tömörítve, titkosítva (HTTPS/WebSocket) küldi a stúdióba. A stúdióban futó **PrimeCam
-vevő** (`primecam-receiver.exe`) fogadja a képeket, és OBS böngészőforrásként
-adja tovább, a játékos Steam azonosítója alapján.
+H.264-be tömörítve, titkosítva (HTTPS/WebSocket) küldi a stúdió szerverére.
+A szerver OBS böngészőforrásként adja tovább a képeket (slot, játékos Steam
+azonosító vagy gép szerint), a stúdió pedig böngészőből, az admin felületen
+kezeli: a stúdió gépein semmit nem kell telepíteni.
 
 Ez a repó a nyilvános részeket tartalmazza:
 
@@ -52,8 +53,8 @@ A Steam azonosítót a Windows beállításjegyzékéből és a Steam
   programokat (Logitech G HUB/Capture, Discord videó, böngésző).
 - **„Steam nem fut”**: indítsd el a Steamet és jelentkezz be.
 - **Nem csatlakozik**: ellenőrizd, hogy a teljes csatlakozási kódot
-  másoltad-e be. Ha a program szerint *„a stúdió vevője nem érhető el”*, a
-  hiba a stúdió oldalán van – szólj nekik.
+  másoltad-e be. Ha a program szerint *„a stúdió szervere nem érhető el”*
+  (régebbi verzióban: *vevője*), a hiba a stúdió oldalán van – szólj nekik.
 - **„Ez a régi, IP-alapú kód”**: a 0.2-es verziótól új csatlakozási kód kell,
   kérd el a stúdiótól.
 - **Szaggat, késik**: a program magától lejjebb veszi a bitrátát, ha a
@@ -64,8 +65,8 @@ A Steam azonosítót a Windows beállításjegyzékéből és a Steam
 ## Központi beállítások
 
 A `config/primecam.toml` minden mezője kommentezve van. Egy commit a `main`
-ágra legfeljebb `poll_minutes` percen belül minden adón és a vevőn életbe
-lép; a vevőben az **Újratöltés minden adón** gombbal azonnal is
+ágra legfeljebb `poll_minutes` percen belül minden adón és a szerveren életbe
+lép; az admin felület **Konfig újratöltése** gombjával azonnal is
 kikényszeríthető.
 
 Az érvényes beállítás mezőnként, ebben a sorrendben áll össze (a későbbi
@@ -75,49 +76,43 @@ felülírja a korábbit):
 2. ez a repó (`config/primecam.toml`)
 3. az adó saját beállítása – csak a kameraválasztás és a kivágás
    (nagyítás, eltolás, tükrözés)
-4. a vevőben az adott adóra beállított felülbírálás
+4. a stúdió felülbírálása az admin felületen, adónként
 
 A programok mezőnként mutatják, honnan jön az érték, és a felülbírálások
 egy gombbal visszaállíthatók a központira.
 
 ## Stúdió
 
-A játékosok a stúdió saját domainjén keresztül, [Cloudflare
-Tunnel](https://developers.cloudflare.com/tunnel/)lel érik el a vevőt: a
-stúdióban sincs szükség porttovábbításra, nyilvános IP-címre vagy VPN-re, és
-a stúdió IP-címe sehol nem jelenik meg.
+A stúdió a szervert böngészőből kezeli: `https://<a stúdió címe>/admin`,
+belépés az admin jelszóval.
 
-### Egyszeri beállítás
+- **Csatlakozás**: a csatlakozási kód (`primecam://…#key=…`) tartalmazza az
+  eseménykulcsot – csak a játékosoknak add oda, ne tedd közzé. Az **Új
+  eseménykulcs** gombbal lecserélhető; utána mindenkinek az új kód kell.
+- **Adók**: minden csatlakozott gép élő előnézettel és a kapcsolat
+  minőségével. A **Beállítások** gombbal az adott adón a kivágás (a keret
+  húzásával, görgetéssel nagyítva) és minden központi mező felülbírálható.
+- **Konfig újratöltése**: a központi beállítások azonnal, minden adón.
 
-Kell hozzá egy Cloudflare-en kezelt domain.
+### Közvetítés OBS-ben
 
-1. A [Cloudflare irányítópulton](https://dash.cloudflare.com/) nyisd meg a
-   **Networking → Tunnels** oldalt, és válaszd a **Create Tunnel** gombot.
-   Adj neki nevet (pl. `primecam`).
-2. A **Setup Environment** résznél válaszd a Windowst, és a vevő gépén
-   **rendszergazdai** parancssorban futtasd a megjelenő parancsokat (a végén
-   `cloudflared.exe service install <token>`). A cloudflared ettől kezdve
-   Windows-szolgáltatásként fut, újraindítás után is.
-3. A tunnel **Routes** lapján: **Add route → Published application**. Adj meg
-   egy aldomaint (pl. `cam`) és a domaint, **Service URL**:
-   `http://127.0.0.1:8090`. Mentés.
-4. A vevő ablakában, a **Csatlakozás** résznél írd be a teljes nevet (pl.
-   `cam.example.hu`), és nyomd meg az **Ellenőrzés** gombot. Zöld jelzésnél
-   minden rendben, hiba esetén az üzenet megmondja, melyik lépés hiányzik.
-5. A **Csatlakozási kód** (`primecam://cam.example.hu#key=…`) tartalmazza az
-   eseménykulcsot – csak a játékosoknak add oda, ne tedd közzé. Az **Új
-   kulcs…** gombbal bármikor lecserélhető; utána mindenkinek az új kód kell.
+OBS-ben adj hozzá **Böngésző** forrást, és illeszd be az admin felületről
+másolt címet. Háromféle cím van:
 
-Az adók kapcsolatait a vevő csak a gépen futó cloudflaredtől fogadja
-(`127.0.0.1:8090`), ezért a routeren semmit nem kell beállítani.
+- **OBS slot** (`/stream/1`, `/stream/2`, …): azt mutatja, akit az admin
+  felületen a slothoz rendelsz, így cserénél az OBS-jelenethez nem kell
+  nyúlni.
+- **Játékos** (`/stream/7656119…`, Steam64 azonosító): a játékost követi
+  akkor is, ha másik gépre vált.
+- **Gép** (`/stream/sender/…`): mindig az adott gép kamerája.
 
-### Közvetítés
+A címek tartalmazzák a nézői kulcsot (`?key=…`), ezért ne tedd őket közzé. Az
+**Új nézői kulcs** gombbal lecserélhető, utána az OBS-forrásokat is frissíteni
+kell. A cím végére írható kiegészítők:
 
-- OBS-ben adj hozzá **Böngésző** forrást, és illeszd be a vevőben a
-  játékos sorában található **OBS URL másolása** gombbal kapott címet
-  (pl. `http://127.0.0.1:8080/view/steam/7656119…`). A forrás a játékost
-  követi akkor is, ha másik gépre vagy fiókra vált.
-  - `?fit=contain` – teljes kép kivágás nélkül (alapból `cover`)
-  - `&mirror=1` – tükrözés csak ebben a nézetben
-  - `&label=1` – a játékos nevének kiírása
-- A `http://127.0.0.1:8080/` oldalon az összes kamera egyszerre látható.
+- `&fit=contain` – teljes kép kivágás nélkül (alapból `cover`)
+- `&mirror=1` – tükrözés csak ebben a nézetben
+- `&label=1` – a játékos nevének kiírása
+
+Ha a forrásban *„a böngésző nem tudja lejátszani”* felirat jelenik meg,
+frissítsd az OBS-t.

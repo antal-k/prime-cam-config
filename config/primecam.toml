@@ -1,9 +1,9 @@
 # PrimeCam központi konfiguráció
 #
-# Minden adó (játékos gép) és a vevő rendszeresen letölti ezt a fájlt a main
-# ágról. A változások újraindítás nélkül életbe lépnek. A vevőben adónként
-# felülbírált mezők, illetve az adón helyben választott kamera és képkivágás
-# ezeket felülírják (lásd a README-t).
+# Minden adó (játékos gép) és a stúdió szervere rendszeresen letölti ezt a
+# fájlt a main ágról. A változások újraindítás nélkül életbe lépnek. Az admin
+# felületen adónként felülbírált mezők, illetve az adón helyben választott
+# kamera és képkivágás ezeket felülírják (lásd a README-t).
 #
 # Hibás fájl esetén az alkalmazások az utolsó jó konfigurációval futnak
 # tovább, és jelzik a hibát.
@@ -45,6 +45,6 @@ mirror = false
 poll_minutes = 5
 
 [update]
-# Ennél régebbi verziónál figyelmeztetés jelenik meg az adón és a vevőben
+# Ennél régebbi verziónál figyelmeztetés jelenik meg az adón és az admin felületen
 # (az új verziót a Releases oldalról kell letölteni).
 min_version = "0.2.0"
