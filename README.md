@@ -4,8 +4,10 @@ Játékoskamerák továbbítása esport közvetítéshez. A játékosok gépén 
 **PrimeCam adó** (`primecam-sender.exe`) a webkamera képét kis méretre vágva,
 H.264-be tömörítve, titkosítva (HTTPS/WebSocket) küldi a stúdió szerverére.
 A szerver OBS böngészőforrásként adja tovább a képeket (slot, játékos Steam
-azonosító vagy gép szerint), a stúdió pedig böngészőből, az admin felületen
-kezeli: a stúdió gépein semmit nem kell telepíteni.
+azonosító vagy gép szerint), a [Prime-HUD](https://github.com/antal-k/Prime-HUD)
+pedig a megfigyelt játékos kameráját mutatja a HUD-ban. A stúdió böngészőből,
+az admin felületen kezeli a szervert: a stúdió gépein semmit nem kell
+telepíteni.
 
 Ez a repó a nyilvános részeket tartalmazza:
 
@@ -116,3 +118,18 @@ kell. A cím végére írható kiegészítők:
 
 Ha a forrásban *„a böngésző nem tudja lejátszani”* felirat jelenik meg,
 frissítsd az OBS-t.
+
+### Kamera a HUD-ban (Prime-HUD)
+
+A [Prime-HUD](https://github.com/antal-k/Prime-HUD) a megfigyelt játékos
+kameráját mutatja az avatarja helyén; ha a játékos kamerája nem él, az
+avatar látszik.
+
+1. A Prime-HUD **Settings → Player Cameras (PrimeCam)** részén add meg a
+   szerver címét és a nézői kulcsot (egy OBS-cím `key=` utáni része), majd
+   **Save & Check**.
+2. Minden játékos annak a gépnek a kameráját kapja, amelyiken a Steam-fiókja
+   be van jelentkezve. A **Players** oldalon játékosonként választható másik
+   gép, vagy **No camera**.
+3. A HUD-ot `localhost`-ról nyisd meg, ahogy a Prime-HUD mutatja, ne hálózati
+   IP-címről: a böngésző csak így játssza le a képet.
