@@ -2,7 +2,7 @@
 
 Játékoskamerák továbbítása esport közvetítéshez. A játékosok gépén futó
 **PrimeCam adó** (`primecam-sender.exe`) a webkamera képét kis méretre vágva,
-H.264-be tömörítve, titkosítva küldi a stúdióba. A stúdióban futó **PrimeCam
+H.264-be tömörítve, titkosítva (HTTPS/WebSocket) küldi a stúdióba. A stúdióban futó **PrimeCam
 vevő** (`primecam-receiver.exe`) fogadja a képeket, és OBS böngészőforrásként
 adja tovább, a játékos Steam azonosítója alapján.
 
@@ -29,8 +29,8 @@ Ez a repó a nyilvános részeket tartalmazza:
 6. Kapcsold be az **Indítás a Windowszal** opciót, hogy a meccsnapokon ne
    kelljen külön elindítani.
 
-A program csak kimenő kapcsolatot használ, a routeren semmit nem kell
-beállítani. Magától nem frissül: új verziónál zárd be, és cseréld le az exe-t
+A program csak kimenő HTTPS-kapcsolatot használ (443-as port), a routeren
+semmit nem kell beállítani. Magától nem frissül: új verziónál zárd be, és cseréld le az exe-t
 a Releases oldalról letöltöttre (a beállítások megmaradnak). Ha a stúdió
 újabb verziót vár, a program figyelmeztet.
 
@@ -39,7 +39,7 @@ a Releases oldalról letöltöttre (a beállítások megmaradnak). Ha a stúdió
 - a kamera kivágott, kicsinyített képét (alapból 300×168, 30 fps, ~300 kbps)
 - a bejelentkezett Steam fiók Steam64 azonosítóját és nevét
 - a gép nevét, a program verzióját, a kamera listáját és a kapcsolat
-  minőségi adatait (késleltetés, csomagvesztés, bitráta)
+  minőségi adatait (késleltetés, eldobott képkockák, bitráta)
 - a teljes, kivágatlan kameraképet másodpercenként egyszer, de **csak akkor**,
   ha a stúdió épp a kivágást állítja
 
@@ -52,10 +52,14 @@ A Steam azonosítót a Windows beállításjegyzékéből és a Steam
   programokat (Logitech G HUB/Capture, Discord videó, böngésző).
 - **„Steam nem fut”**: indítsd el a Steamet és jelentkezz be.
 - **Nem csatlakozik**: ellenőrizd, hogy a teljes csatlakozási kódot
-  másoltad-e be. Céges/kollégiumi hálózaton a 8443-as TCP és 8189-es UDP
-  kimenő port lehet tiltva.
-- **Szaggat**: a program magától lejjebb veszi a bitrátát; ha tartósan rossz,
-  szólj a stúdiónak.
+  másoltad-e be. Ha a program szerint *„a stúdió vevője nem érhető el”*, a
+  hiba a stúdió oldalán van – szólj nekik.
+- **„Ez a régi, IP-alapú kód”**: a 0.2-es verziótól új csatlakozási kód kell,
+  kérd el a stúdiótól.
+- **Szaggat, késik**: a program magától lejjebb veszi a bitrátát, ha a
+  hálózat nem bírja; ha tartósan rossz, szólj a stúdiónak. Ilyenkor érdemes a
+  gépen futó nagy feltöltéseket (játékfrissítés, stream, felhőmentés)
+  szüneteltetni.
 
 ## Központi beállítások
 
@@ -78,13 +82,37 @@ egy gombbal visszaállíthatók a központira.
 
 ## Stúdió
 
-- A vevő gépen a routeren továbbítsd a **8443/TCP** (WHIP, HTTPS) és a
-  **8189/UDP** (média) portot a vevő gép helyi IP-címére. Ha ez nem
-  lehetséges (pl. CGNAT), a játékosok és a vevő [Tailscale](https://tailscale.com)
-  hálózaton is összeköthetők; ilyenkor a csatlakozási kódban a vevő
-  Tailscale címét kell megadni.
-- A csatlakozási kódot a vevő ablakában találod. Ez tartalmazza az
-  eseménykulcsot és a tanúsítvány ujjlenyomatát – ne tedd közzé.
+A játékosok a stúdió saját domainjén keresztül, [Cloudflare
+Tunnel](https://developers.cloudflare.com/tunnel/)lel érik el a vevőt: a
+stúdióban sincs szükség porttovábbításra, nyilvános IP-címre vagy VPN-re, és
+a stúdió IP-címe sehol nem jelenik meg.
+
+### Egyszeri beállítás
+
+Kell hozzá egy Cloudflare-en kezelt domain.
+
+1. A [Cloudflare irányítópulton](https://dash.cloudflare.com/) nyisd meg a
+   **Networking → Tunnels** oldalt, és válaszd a **Create Tunnel** gombot.
+   Adj neki nevet (pl. `primecam`).
+2. A **Setup Environment** résznél válaszd a Windowst, és a vevő gépén
+   **rendszergazdai** parancssorban futtasd a megjelenő parancsokat (a végén
+   `cloudflared.exe service install <token>`). A cloudflared ettől kezdve
+   Windows-szolgáltatásként fut, újraindítás után is.
+3. A tunnel **Routes** lapján: **Add route → Published application**. Adj meg
+   egy aldomaint (pl. `cam`) és a domaint, **Service URL**:
+   `http://127.0.0.1:8090`. Mentés.
+4. A vevő ablakában, a **Csatlakozás** résznél írd be a teljes nevet (pl.
+   `cam.example.hu`), és nyomd meg az **Ellenőrzés** gombot. Zöld jelzésnél
+   minden rendben, hiba esetén az üzenet megmondja, melyik lépés hiányzik.
+5. A **Csatlakozási kód** (`primecam://cam.example.hu#key=…`) tartalmazza az
+   eseménykulcsot – csak a játékosoknak add oda, ne tedd közzé. Az **Új
+   kulcs…** gombbal bármikor lecserélhető; utána mindenkinek az új kód kell.
+
+Az adók kapcsolatait a vevő csak a gépen futó cloudflaredtől fogadja
+(`127.0.0.1:8090`), ezért a routeren semmit nem kell beállítani.
+
+### Közvetítés
+
 - OBS-ben adj hozzá **Böngésző** forrást, és illeszd be a vevőben a
   játékos sorában található **OBS URL másolása** gombbal kapott címet
   (pl. `http://127.0.0.1:8080/view/steam/7656119…`). A forrás a játékost
